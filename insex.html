@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>男模話術防禦戰 | @ypps_</title>
+    <!-- 使用 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 使用 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        /* 貼圖彈跳動畫 */
+        @keyframes stickerBounce { 
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .animate-fade-in { animation: fadeIn 0.8s ease-out; }
+        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; opacity: 0; }
+        .animate-sticker { animation: stickerBounce 2s infinite ease-in-out; }
+        
+        /* 隱藏滾動條但保持功能 */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .ios-scroll { -webkit-overflow-scrolling: touch; }
+    </style>
+</head>
+<body class="bg-[#191F2C] text-white font-sans overflow-hidden select-none"> 
+
+    <!-- 全域版權浮水印 -->
+    <div class="fixed bottom-2 w-full text-center z-50 pointer-events-auto">
+        <a href="https://www.instagram.com/ypps_" target="_blank" class="text-[10px] text-white/30 hover:text-white/80 transition-colors font-medium tracking-widest">
+            DESIGNED BY <i class="fa-brands fa-instagram"></i> YPPS_
+        </a>
+    </div>
+
+    <div id="app" class="relative min-h-screen flex flex-col items-center justify-center"></div>
+    <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+
+    <script>
+        // ==========================================
+        // 圖片資源設定 (已修復連結)
+        // ==========================================
+        // 使用 URL 編碼 (: -> %3A) 以避免解析錯誤
+        const HOST_AVATAR = "https://media.vogue.com.tw/photos/5fa13c62e4b5bd774a1a80e5/2%3A3/w_2240,c_limit/GQCoverA.jpg";
+        
+        // 備用圖片：如果上方圖片無法讀取，自動切換至此
+        const FALLBACK_AVATAR = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&facepad=2&w=400&h=400&q=80";
+
+        let state = {
+            gameState: 'start',
+            score: 0,
+            history: [],
+            userImage: null
+        };
+
+        function getCurrentAvatar() { return state.userImage || HOST_AVATAR; }
+
+        function getTimeString() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        // 清理選項文字 (移除 A. B. C.)
+        function cleanChoiceText(text) {
+            if (!text) return "";
+            return text.replace(/^[A-C]\.\s*/, '');
+        }
+
+        // 處理圖片載入錯誤
+        window.handleImgError = function(img) {
+            // 防止無限迴圈
+            img.onerror = null;
+            img.src = FALLBACK_AVATAR;
+        };
+
+        function startGame() { state.gameState = 'chat1'; render(); }
+        
+        function resetGame() {
+            state.gameState = 'start';
+            state.score = 0;
+            state.history = [];
+            render();
+        }
+
+        function handleChoice(points, nextState, choiceText) {
+            state.score += points;
+            state.history.push(choiceText);
+            state.gameState = nextState;
+            render();
+        }
+
+        function triggerFileUpload() { document.getElementById('fileInput').click(); }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                state.userImage = URL.createObjectURL(file);
+                render();
+            }
+        }
+
+        const app = document.getElementById('app');
+
+        function getBackgroundHTML() {
+            return `
+                <div class="fixed inset-0 z-0 bg-[#191F2C] pointer-events-none">
+                    <div class="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
+                </div>
+            `;
+        }
+
+        function renderStartScreen() {
+            const currentAvatar = getCurrentAvatar();
+            return `
+                ${getBackgroundHTML()}
+                <div class="z-10 text-center max-w-md w-full p-8 animate-fade-in mx-4">
+                    <div class="mb-6 flex flex-col items-center justify-center">
+                        <div class="relative w-28 h-28 group cursor-pointer" onclick="triggerFileUpload()">
+                            <img src="${currentAvatar}" onerror="handleImgError(this)" class="w-full h-full rounded-full object-cover border-4 border-white/10 shadow-2xl group-hover:border-purple-400 transition-all duration-300">
+                            <div class="absolute -bottom-1 -right-1 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#191F2C] z-10">LINE</div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-3 flex items-center gap-1 animate-pulse"><i class="fa-solid fa-camera"></i> 點擊頭像換人</p>
+                    </div>
+                    
+                    <div class="mb-4 inline-block px-3 py-1 rounded-full bg-white/5 border border-white/5">
+                        <p class="text-[10px] text-gray-400 tracking-wider">IG: @YPPS_ 原創企劃</p>
+                    </div>
+
+                    <h1 class="text-2xl font-bold mb-2 text-white">男模話術防禦戰</h1>
+                    <p class="text-gray-400 mb-8 text-base">當「他」跳過告白直接喊老婆...<br/>妳的理智線能撐幾秒？</p>
+                    
+                    <button onclick="startGame()" class="w-full py-3 bg-[#06C755] hover:bg-[#05b54d] text-white rounded-lg font-bold text-lg shadow-md transform transition active:scale-95 flex items-center justify-center gap-2">
+                        進入聊天室
+                    </button>
+                    <p class="mt-4 text-xs text-gray-500">警告：本測驗含有高濃度心理博弈</p>
+                </div>
+            `;
+        }
+
+        function renderChatScreen(senderName, messages, choices) {
+            const currentAvatar = getCurrentAvatar();
+            const timeStr = getTimeString();
+            // 加快節奏至 0.5 秒
+            const MSG_INTERVAL = 0.5;
+
+            let messagesHTML = messages.map((msg, idx) => {
+                const delay = idx * MSG_INTERVAL;
+                const isUser = msg.isUser;
+                const isSticker = msg.type === 'sticker';
+                const alignmentClass = isUser ? 'justify-end' : 'justify-start';
+                
+                let bubbleClass = '';
+                if (!isSticker) {
+                    bubbleClass = isUser 
+                        ? 'bg-[#06C755] text-white rounded-2xl rounded-tr-sm p-3 shadow-sm' 
+                        : 'bg-[#282f3c] text-white rounded-2xl rounded-tl-sm p-3 shadow-sm';
+                }
+                    
+                const avatarHTML = !isUser ? 
+                    `<div class="flex flex-col items-center mr-2 mt-1">
+                        <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-300">
+                            <img src="${currentAvatar}" onerror="handleImgError(this)" class="w-full h-full object-cover">
+                        </div>
+                    </div>` : '';
+
+                let contentHTML = '';
+                
+                if (isUser) {
+                    // 用戶 (右側)
+                    contentHTML = `
+                        <div class="flex items-end justify-end">
+                            <div class="flex flex-col items-end mr-1.5 min-w-[30px]">
+                                <span class="text-[10px] text-[#06C755] font-medium leading-tight">已讀</span>
+                                <span class="text-[10px] text-gray-400 leading-tight">${timeStr}</span>
+                            </div>
+                            <div class="max-w-[70%]">
+                                <div class="text-[15px] leading-relaxed break-words ${bubbleClass}">
+                                    ${msg.text}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // 對方 (左側)
+                    const messageContent = isSticker 
+                        ? `<div class="text-7xl drop-shadow-md transform origin-left hover:scale-105 transition-transform duration-300 select-none animate-sticker">${msg.text}</div>`
+                        : `<div class="text-[15px] leading-relaxed break-words ${bubbleClass}">${msg.text}</div>`;
+
+                    contentHTML = `
+                        <div class="flex items-start">
+                            ${avatarHTML}
+                            <div class="flex flex-col max-w-[75%]">
+                                <div class="text-[11px] text-gray-300 mb-1 ml-1">${senderName}</div>
+                                <div class="flex items-end">
+                                    ${messageContent}
+                                    <span class="text-[10px] text-gray-400 ml-1.5 whitespace-nowrap mb-0.5">${timeStr}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="flex ${alignmentClass} animate-slide-up mb-4 w-full" style="animation-delay: ${delay}s">
+                        ${contentHTML}
+                    </div>
+                `;
+            }).join('');
+            
+            const choicesDelay = messages.length * MSG_INTERVAL;
+            
+            let choicesHTML = choices.map(choice => `
+                <button onclick="handleChoice(${choice.points}, '${choice.nextState}', '${choice.text}')" 
+                    class="w-full mb-2 py-3 px-4 bg-[#282f3c] hover:bg-[#343b4a] border border-gray-700/50 rounded-xl text-left transition-all active:scale-[0.98] flex justify-between items-center shadow-md">
+                    <span class="text-[14px] text-white">${choice.text}</span>
+                    <i class="fa-solid fa-chevron-right text-gray-500 text-xs"></i>
+                </button>`).join('');
+
+            return `
+                <div class="absolute inset-0 w-full h-full flex flex-col font-sans bg-[#191F2C]">
+                    <!-- Header -->
+                    <div class="bg-[#191F2C]/90 backdrop-blur-sm p-3 flex items-center justify-between border-b border-gray-800 z-20 shadow-sm sticky top-0 h-14">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-chevron-left text-white text-lg"></i>
+                            <div class="font-bold text-lg text-white">${senderName} <i class="fa-solid fa-volume-xmark text-xs text-gray-500 ml-1"></i></div>
+                        </div>
+                        <div class="flex gap-4 text-white text-lg pr-2">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <i class="fa-solid fa-phone"></i>
+                            <i class="fa-solid fa-bars"></i>
+                        </div>
+                    </div>
+
+                    <!-- 聊天內容區域 -->
+                    <div class="flex-1 overflow-y-auto px-4 py-4 pb-64 ios-scroll scroll-smooth scrollbar-hide w-full" id="chatContainer">
+                        ${messagesHTML}
+                        <div class="h-4"></div>
+                    </div>
+
+                    <!-- 底部選項區 -->
+                    <div class="absolute bottom-0 left-0 w-full bg-[#191F2C]/95 backdrop-blur-md border-t border-gray-800 pt-3 pb-8 px-4 z-30"
+                         style="opacity: 0; animation: fadeIn 0.5s ease-out forwards; animation-delay: ${choicesDelay}s">
+                        <div class="max-w-md mx-auto">
+                            <p class="text-xs text-gray-500 mb-2 text-center">請選擇回應</p>
+                            ${choicesHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function scrollToBottom() {
+            setTimeout(() => {
+                const container = document.getElementById('chatContainer');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }, 100);
+        }
+
+        function renderResultScreen() {
+            let resultTitle, resultDesc, resultColor, iconClass;
+            const score = state.score;
+            if (score < 8) {
+                resultTitle = "暈船重症患者";
+                resultDesc = "妳非常危險！妳已經掉進了「既定事實」的陷阱。他跳過了追求，直接叫老婆，再用拒絕貴婦來展現「妳最特別」，最後這招「以退為進」直接收割妳。";
+                resultColor = "text-pink-400"; iconClass = "fa-triangle-exclamation text-pink-500 animate-bounce";
+            } else if (score >= 8 && score < 13) {
+                resultTitle = "人間清醒觀察家";
+                resultDesc = "妳有不錯的防禦力，對於太快的進展感到遲疑。妳看出了他在情感勒索，但還是可能會因為一時心軟而給他機會。記住：真正的感情不會建立在業績壓力上。";
+                resultColor = "text-yellow-400"; iconClass = "fa-message text-yellow-400";
+            } else {
+                resultTitle = "八大心理學大師";
+                resultDesc = "太強了！這套「老婆→拒絕貴婦→賣慘收網」的三部曲對妳完全無效。妳一眼就看穿他只是想利用情感博弈來換取業績。";
+                resultColor = "text-cyan-400"; iconClass = "fa-gem text-cyan-400";
+            }
+
+            return `
+                ${getBackgroundHTML()}
+                <div class="z-10 text-center max-w-md w-full p-8 animate-fade-in mx-4 mt-[-50px]">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-20 h-20 rounded-full bg-[#282f3c] flex items-center justify-center shadow-lg border border-gray-700">
+                            <i class="fa-solid ${iconClass} text-4xl"></i>
+                        </div>
+                    </div>
+                    
+                    <h2 class="text-gray-500 text-xs tracking-widest uppercase mb-2">診斷結果</h2>
+                    <h1 class="text-2xl font-bold mb-6 ${resultColor}">${resultTitle}</h1>
+                    
+                    <div class="bg-[#282f3c] p-6 rounded-xl text-left mb-8 border border-gray-700 shadow-md relative">
+                        <i class="fa-solid fa-quote-left text-gray-600 absolute top-4 left-4 text-xl"></i>
+                        <p class="text-gray-300 leading-relaxed text-sm pt-4 pl-2">${resultDesc}</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <button onclick="resetGame()" class="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-rotate-left"></i> 再測一次
+                        </button>
+                        
+                        <div class="pt-4 mt-4 border-t border-gray-800 space-y-3">
+                            <p class="text-xs text-gray-500 mb-1">覺得準嗎？截圖發限動</p>
+                            <a href="https://www.instagram.com/ypps_" target="_blank" class="block w-full py-3 bg-gradient-to-r from-purple-900 to-purple-800 rounded-lg text-sm font-medium hover:opacity-90 transition">
+                                <i class="fa-brands fa-instagram mr-1"></i> 標記 @YPPS_ 看更多解析
+                            </a>
+
+                            <!-- 歡迎投稿區塊 -->
+                             <a href="https://www.instagram.com/ypps_" target="_blank" class="block w-full py-3 bg-[#1e2532] border border-gray-700 hover:bg-[#252b38] hover:border-gray-600 rounded-lg text-sm font-medium transition group relative overflow-hidden">
+                                <div class="absolute top-0 right-0 bg-red-500 text-white text-[9px] px-2 py-0.5 rounded-bl-lg font-bold">歡迎投稿</div>
+                                <div class="flex items-center justify-center gap-2 text-gray-300 group-hover:text-white">
+                                    <i class="fa-regular fa-paper-plane"></i> 遇過更扯的？私訊真人真事
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function render() {
+            let html = '';
+            if (state.gameState === 'start') {
+                html = renderStartScreen();
+            } else if (state.gameState === 'chat1') {
+                html = renderChatScreen('Leo', [
+                    { isUser: false, text: "我要先走了 但我不想跟她們說實話" },
+                    { isUser: false, text: "我跟她們說我要去找我老婆 我怕我老婆想我了" },
+                    { isUser: false, text: "等下帶妳去吃宵夜？" }
+                ], [
+                    { text: "A. (臉紅) 誰是你老婆啦...好啦等你", points: 0, nextState: 'chat2' },
+                    { text: "B. 你這樣講好嗎？我們又還沒在一起", points: 2, nextState: 'chat2' },
+                    { text: "C. (心想：跳過告白？SOP太明顯囉)", points: 5, nextState: 'chat2' }
+                ]);
+            } else if (state.gameState === 'chat2') {
+                let introMsg = "";
+                // 增加防呆檢查
+                let userChoice = state.history[0] || ""; 
+                let cleanUserChoice = cleanChoiceText(userChoice);
+
+                if (userChoice && userChoice.includes("A.")) {
+                    introMsg = "乖 這就是為什麼我最喜歡妳";
+                } else {
+                    introMsg = "傻瓜 那些不重要"; 
+                }
+
+                html = renderChatScreen('Leo', [
+                    { isUser: true, text: cleanUserChoice }, // 顯示用戶選擇
+                    { isUser: true, text: "你剛剛那桌不是大戶嗎？你就這樣跑出來" },
+                    { isUser: false, text: introMsg },
+                    { isUser: false, type: 'sticker', text: '😘' },
+                    { isUser: false, text: "那個貴婦剛剛要框我到底 但我拒絕了" },
+                    { isUser: false, text: "我跟她說不行 我有更重要的人要陪" }
+                ], [
+                    { text: "A. 天啊你對我好好...我有點感動", points: 0, nextState: 'chat3' },
+                    { text: "B. 這樣你會不會被扣錢啊？", points: 2, nextState: 'chat3' },
+                    { text: "C. (聽聽就好，不予置評)", points: 5, nextState: 'chat3' }
+                ]);
+            } else if (state.gameState === 'chat3') {
+                // 增加防呆檢查
+                let userChoice = state.history[1] || "";
+                let cleanUserChoice = cleanChoiceText(userChoice);
+
+                html = renderChatScreen('Leo', [
+                    { isUser: true, text: cleanUserChoice }, // 顯示用戶選擇
+                    { isUser: false, text: "唉...幹部剛剛一直傳訊息罵我" },
+                    { isUser: false, text: "但我真的不想回去面對那個阿姨" },
+                    { isUser: false, type: 'sticker', text: '🥺' },
+                    { isUser: false, text: "其實我今天還差一點業績..." },
+                    { isUser: false, text: "寶貝 妳能不能過來幫我坐個十分鐘就好？讓我交差" }
+                ], [
+                    { text: "A. 好啦...只有十分鐘喔 (馬上出門)", points: 0, nextState: 'result' },
+                    { text: "B. 我去是可以，但我不喝酒喔", points: 2, nextState: 'result' },
+                    { text: "C. 抱歉我累了，改天吧 (果斷放生)", points: 5, nextState: 'result' }
+                ]);
+            } else if (state.gameState === 'result') {
+                html = renderResultScreen();
+            }
+            app.innerHTML = html;
+            
+            if (state.gameState.startsWith('chat')) {
+                scrollToBottom();
+            }
+        }
+        render();
+    </script>
+</body>
+</html>
